@@ -1,3 +1,15 @@
-.div {
-  background: #000;
+@import "../../App";
+
+.header {
+  position: relative;
+  :global {
+    .am-navbar {
+      background: $main-color;
+    }
+  }
+  .menu {
+    position: absolute;
+    left: 0;
+    width: 30%;
+  }
 }
