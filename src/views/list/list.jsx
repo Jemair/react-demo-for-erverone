@@ -19,6 +19,17 @@ const data = [{
   id: 4,
 }]
 
+/**
+ * 以下为第二种组件构造形式
+ * 本质上是一个从Component或PureComponent继承出来的类
+ * 关于pureComponent: https://www.zcfy.cc/article/why-and-how-to-use-purecomponent-in-react-js-60devs
+ * 关键的方法为render方法 该方法会将JSX模板渲染成真实的DOM节点
+ * props属性用于接收从父组件传递来的数据(vue中也有)
+ * state属性用于保存组件内部的数据
+ * state类似于vue中的data属性 区别在于react中的数据是单向流动的
+ * 也就是说你不能直接this.state.xxx = xxx这样操作state，而是通过调用this.setState()方法对数据进行更新
+ * 📌关于react中数据的不变性 强烈建议观看此视频 https://www.youtube.com/watch?v=Wo0qiGPSV-s
+ */
 export default class List extends PureComponent {
   /**
    * 组件内部数据 类似于vue中的this.data
@@ -37,9 +48,9 @@ export default class List extends PureComponent {
   switchTodo = (type, id) => {
     const { todoList, doneList } = this.state
     /**
-     * 特别注意此处⬇️ 和vue不一样的地方
+     * ⬇️特别注意此处️ 和vue不一样的地方
      * vue的数据是双向绑定的  直接在this.xxx变量上改动即可
-     * react的数据单向绑定  需要先声明一个新变量 然后用setState方法重新放入数据流中
+     * react的数据单向绑定  需要先声明一个新变量 修改这个新变量 然后用setState方法将新变量重新放入数据流中
      */
     let newTodo = []
     let newDone = []
@@ -68,14 +79,18 @@ export default class List extends PureComponent {
   }
 
   /**
-   * ⚠️这里是react中最重要的一个方法 用于输出组件模板
+   * 🔆这里是react中最重要的一个方法 用于输出组件模板
    */
   render() {
     return (
       <AntList className={s.list}>
         { this.renderTodoList() }
         { this.state.doneList.map(i => (
-          <Item key={i.id} arrow="horizontal" thumb={this.renderThumb('done', i.id)}><s>{i.title}</s></Item>
+          <Item
+            key={i.id}
+            arrow="horizontal"
+            thumb={this.renderThumb('done', i.id)}
+          ><s>{i.title}</s></Item>
         )) }
       </AntList>
     )
@@ -91,9 +106,18 @@ export default class List extends PureComponent {
    * @returns {React[]}
    */
   renderTodoList = () => {
+    const { history } = this.props
     const { todoList } = this.state
     return todoList.map(i => (
-      <Item key={i.id} arrow="horizontal" thumb={this.renderThumb('todo', i.id)}>{i.title}</Item>
+      <Item
+        key={i.id}
+        arrow="horizontal"
+        thumb={this.renderThumb('todo', i.id)}
+        onClick={e => {
+          if (e.target.tagName === 'INPUT') return
+          history.push(`/${i.id}`)
+        }}
+      >{i.title}</Item>
     ))
   }
 
@@ -103,5 +127,5 @@ export default class List extends PureComponent {
    * @param id number 当前项目的id
    * @returns {React[]}
    */
-  renderThumb = (type, id) => <CheckboxItem onChange={() => this.switchTodo(type, id)} defaultChecked={type === 'done'} />
+  renderThumb = (type, id) => <CheckboxItem className={s.checkbox} onChange={() => this.switchTodo(type, id)} defaultChecked={type === 'done'} />
 }

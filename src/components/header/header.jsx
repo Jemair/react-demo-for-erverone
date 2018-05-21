@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react'
-import { NavBar, Menu } from 'antd-mobile'
+import { Route, Switch, Link, withRouter } from 'react-router-dom'
+import { NavBar, Menu, Icon } from 'antd-mobile'
 import s from './header.scss'
 
 const initData = [{
@@ -13,18 +14,32 @@ const initData = [{
   value: 3,
 }]
 
+/**
+ * 没有被<Route>包裹的组件默认不会带有router相关的props
+ * 这时可以用withRouter方法封装一层 这样就可以在后退按钮中调用goBack方法了
+ * 修饰器的用法是一个es6的语法糖 之后会在redux中大量用到
+ * 此处可以等价于
+ * export default withRouter(Header)
+ */
+@withRouter
 export default class Header extends PureComponent {
   state = {
     showMenu: false,
     chosenValue: [1],
   }
 
-  handleLeftClick = e => {
+  componentWillUnmount() {
+    document.removeEventListener('click', this.hideMenu)
+  }
+
+  hideMenu = () => {
+    this.setState({ showMenu: false })
+  }
+
+  handleMenuClick = e => {
     this.setState({ showMenu: true })
     e.nativeEvent.stopImmediatePropagation()
-    document.addEventListener('click', () => {
-      this.setState({ showMenu: false })
-    })
+    document.addEventListener('click', this.hideMenu)
   }
 
   handleMenuChange = value => {
@@ -37,8 +52,8 @@ export default class Header extends PureComponent {
     return (
       <div className={s.header}>
         <NavBar
-          leftContent={'Menu'}
-          onLeftClick={this.handleLeftClick}
+          leftContent={this.renderLeft()}
+          rightContent={this.renderRight()}
         >
           一看就会的React demo
         </NavBar>
@@ -55,4 +70,18 @@ export default class Header extends PureComponent {
       </div>
     )
   }
+
+  renderLeft = () => (
+    <Switch>
+      <Route exact path="/" render={() => <div onClick={this.handleMenuClick}>menu</div>} />
+      <Route render={() => <Icon onClick={() => { this.props.history.goBack() }} type="left" />} />
+    </Switch>
+  )
+
+  renderRight = () => (
+    <Switch>
+      <Route exact path="/:id" render={() => <span>提交</span>} />
+      <Route render={() => <Link to="/add"><Icon type="plus" /></Link>} />
+    </Switch>
+  )
 }
