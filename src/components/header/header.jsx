@@ -49,7 +49,7 @@ export default class Header extends PureComponent {
             data={initData}
             value={chosenValue}
             level={1}
-            height={document.documentElement.clientHeight * 0.3}
+            height="auto"
           />
         }
       </div>
