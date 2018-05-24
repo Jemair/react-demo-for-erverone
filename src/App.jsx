@@ -4,7 +4,6 @@ import Loadable from 'utils/LoadableComponent'
 import Header from 'components/header/header'
 import List from 'views/list/list'
 import { BrowserRouter, Route, Switch } from 'react-router-dom'
-import { InputItem } from 'antd-mobile'
 import './App.scss'
 
 import { Provider } from 'react-redux'

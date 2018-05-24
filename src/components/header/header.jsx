@@ -1,7 +1,9 @@
 import React, { PureComponent } from 'react'
 import { Route, Switch, Link, withRouter } from 'react-router-dom'
-import { NavBar, Menu, Icon } from 'antd-mobile'
+import { connect } from 'react-redux'
+import { NavBar, Menu, Icon, Toast } from 'antd-mobile'
 import s from './header.scss'
+import { ADD_TODO } from '../../redux/constants/ActionTypes'
 
 const initData = [{
   label: '菜单1号',
@@ -14,6 +16,17 @@ const initData = [{
   value: 3,
 }]
 
+const mapStateToProps = state => ({
+  input: state.list.input,
+})
+
+const mapDispatchToProps = (dispatch, ownProps) => ({
+  handleSubmit: () => {
+    dispatch({ type: ADD_TODO })
+    ownProps.history.replace('/')
+  },
+})
+
 /**
  * 没有被<Route>包裹的组件默认不会带有router相关的props
  * 这时可以用withRouter方法封装一层 这样就可以在后退按钮中调用goBack方法了
@@ -22,10 +35,15 @@ const initData = [{
  * export default withRouter(Header)
  */
 @withRouter
+@connect(mapStateToProps, mapDispatchToProps)
 export default class Header extends PureComponent {
   state = {
     showMenu: false,
     chosenValue: [1],
+  }
+
+  componentDidMount() {
+    console.log(this.props)
   }
 
   componentWillUnmount() {
@@ -80,7 +98,7 @@ export default class Header extends PureComponent {
 
   renderRight = () => (
     <Switch>
-      <Route exact path="/:id" render={() => <span>提交</span>} />
+      <Route exact path="/:id" render={() => <span onClick={this.props.handleSubmit}>提交</span>} />
       <Route render={() => <Link to="/add"><Icon type="plus" /></Link>} />
     </Switch>
   )
