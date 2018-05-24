@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react'
 import { connect } from 'react-redux'
 import { List as AntList, Checkbox } from 'antd-mobile'
 import s from './list.scss'
+import { SWITCH_TODO } from '../../redux/constants/ActionTypes'
 
 const { Item } = AntList
 const { CheckboxItem } = Checkbox
@@ -13,6 +14,16 @@ const { CheckboxItem } = Checkbox
  */
 const mapStateToProps = state => ({
   list: state.list,
+})
+
+/**
+ * 通过mapDispatchToProps方法将actions注入到组件的props中
+ * @param dispatch
+ * @param ownProps
+ * @returns {{switchTodo: (function(*, *): *)}}
+ */
+const mapDispatchToProps = (dispatch, ownProps) => ({
+  switchTodo: (status, id) => dispatch({ type: SWITCH_TODO, status, id }),
 })
 
 /**
@@ -33,7 +44,7 @@ const mapStateToProps = state => ({
  * 前者是将state注入组件 后者是将action注入组件
  * 返回值是一个高阶组件 也就是一个接受组件并返回组件的函数
  */
-@connect(mapStateToProps)
+@connect(mapStateToProps, mapDispatchToProps)
 export default class List extends PureComponent {
   /**
    * 组件内部数据 类似于vue中的this.data
@@ -46,44 +57,6 @@ export default class List extends PureComponent {
 
   componentDidMount() {
     console.log(this.props.list)
-  }
-
-  /**
-   * 切换项目状态
-   * @param type ['t\odo'|'done'] 根据当前项目状态来确定操作类别
-   * @param id number 当前项目id
-   */
-  switchTodo = (type, id) => {
-    const { todoList, doneList } = this.state
-    /**
-     * ⬇️特别注意此处️ 和vue不一样的地方
-     * vue的数据是双向绑定的  直接在this.xxx变量上改动即可
-     * react的数据单向绑定  需要先声明一个新变量 修改这个新变量 然后用setState方法将新变量重新放入数据流中
-     */
-    let newTodo = []
-    let newDone = []
-    /**
-     * 处理数据并生成新的数据
-     */
-    if (type === 'todo') {
-      newTodo = todoList.filter(i => {
-        if (i.id !== id) return true
-        newDone = [i, ...doneList].sort((a, b) => a.id - b.id > 0)
-        return false
-      })
-    }
-    if (type === 'done') {
-      newDone = doneList.filter(i => {
-        if (i.id !== id) return true
-        newTodo = [i, ...todoList].sort((a, b) => a.id - b.id > 0)
-        return false
-      })
-    }
-    // 将新的数据放回数据流
-    // 当数据更新时 会重新出发render方法
-    // 如果直接在todoList, doneList上改动
-    // 会因为数据地址未改变 导致react认为数据未更新 不会重新渲染
-    this.setState({ todoList: newTodo, doneList: newDone })
   }
 
   /**
@@ -142,5 +115,5 @@ export default class List extends PureComponent {
    * @param id number 当前项目的id
    * @returns {React[]}
    */
-  renderThumb = (type, id) => <CheckboxItem className={s.checkbox} onChange={() => this.switchTodo(type, id)} defaultChecked={type === 'done'} />
+  renderThumb = (type, id) => <CheckboxItem className={s.checkbox} onChange={() => this.props.switchTodo(type, id)} defaultChecked={type === 'done'} />
 }
