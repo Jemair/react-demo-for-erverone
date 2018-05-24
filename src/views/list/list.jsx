@@ -1,23 +1,19 @@
 import React, { PureComponent } from 'react'
+import { connect } from 'react-redux'
 import { List as AntList, Checkbox } from 'antd-mobile'
 import s from './list.scss'
 
 const { Item } = AntList
 const { CheckboxItem } = Checkbox
 
-const data = [{
-  title: '我今天要吃饭',
-  id: 1,
-}, {
-  title: '我今天要睡觉',
-  id: 2,
-}, {
-  title: '我今天要打游戏',
-  id: 3,
-}, {
-  title: '我今天要打豆豆',
-  id: 4,
-}]
+/**
+ * 通过mapStateToProps方法将store中的字段映射到组件的props中
+ * @param state 完整的store树
+ * @returns {{list: *}} 注入组件中的props参数
+ */
+const mapStateToProps = state => ({
+  list: state.list,
+})
 
 /**
  * 以下为第二种组件构造形式
@@ -30,14 +26,26 @@ const data = [{
  * 也就是说你不能直接this.state.xxx = xxx这样操作state，而是通过调用this.setState()方法对数据进行更新
  * 📌关于react中数据的不变性 强烈建议观看此视频 https://www.youtube.com/watch?v=Wo0qiGPSV-s
  */
+
+/**
+ * connect方法是react-redux库的核心方法
+ * connect方法接受mapStateToProps和mapDispatchToProps两个方法作为参数
+ * 前者是将state注入组件 后者是将action注入组件
+ * 返回值是一个高阶组件 也就是一个接受组件并返回组件的函数
+ */
+@connect(mapStateToProps)
 export default class List extends PureComponent {
   /**
    * 组件内部数据 类似于vue中的this.data
    * @type {{todoList: [], doneList: []}}
    */
   state = {
-    todoList: data,
+    todoList: [],
     doneList: [],
+  }
+
+  componentDidMount() {
+    console.log(this.props.list)
   }
 
   /**
@@ -85,29 +93,21 @@ export default class List extends PureComponent {
     return (
       <AntList className={s.list}>
         { this.renderTodoList() }
-        { this.state.doneList.map(i => (
-          <Item
-            key={i.id}
-            arrow="horizontal"
-            thumb={this.renderThumb('done', i.id)}
-          ><s>{i.title}</s></Item>
-        )) }
+        { this.renderDoneList() }
       </AntList>
     )
   }
 
   /**
    * 渲染组件列表的方法
-   * 也可以不写函数，而是像doneList那样直接写在render方法中
-   * 但是为了代码的清晰度 建议把每一小块的渲染单独抽离出来作为方法调用
+   * 为了代码的清晰度 建议把每一小块的渲染单独抽离出来作为方法调用
    * 另外 个人习惯于以render方法为界
    * 把这些抽离出来的处理渲染的方法放在render方法的下方
    * 把事件句柄等处理逻辑的方法放在render方法的上方
    * @returns {React[]}
    */
   renderTodoList = () => {
-    const { history } = this.props
-    const { todoList } = this.state
+    const { history, list: { todoList } } = this.props
     return todoList.map(i => (
       <Item
         key={i.id}
@@ -118,6 +118,21 @@ export default class List extends PureComponent {
           history.push(`/${i.id}`)
         }}
       >{i.title}</Item>
+    ))
+  }
+
+  /**
+   * 渲染已完成项目的列表
+   * @returns {React[]}
+   */
+  renderDoneList = () => {
+    const { doneList } = this.props.list
+    return doneList.map(i => (
+      <Item
+        key={i.id}
+        arrow="horizontal"
+        thumb={this.renderThumb('done', i.id)}
+      ><s>{i.title}</s></Item>
     ))
   }
 
